@@ -1,0 +1,97 @@
+/* Custom styles for the mini-games website */
+
+/* Game card hover effects */
+.game-card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.game-card:hover {
+    transform: translateY(-4px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .game-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Loading animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Canvas styling for games */
+canvas {
+    border: 2px solid #374151;
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+    background: #1f2937;
+}
+
+/* Game container */
+.game-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Score display */
+.score-display {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #374151;
+}
+
+/* Game controls */
+.game-controls {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.game-controls button {
+    margin: 0 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.game-controls button:hover {
+    opacity: 0.9;
+}
+
+/* Instructions */
+.game-instructions {
+    background: #f3f4f6;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.game-instructions h3 {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.game-instructions p {
+    color: #6b7280;
+    margin: 0.25rem 0;
+}
