@@ -80,7 +80,7 @@ mini-games-website/
 
 ## 🌐 Live Demo
 
-Visit the live site: [https://yourusername.github.io/mini-games-website/](https://yourusername.github.io/mini-games-website/](https://yaobnhea-sudo.github.io/MiniPlay/)
+Visit the live site: [[https://yourusername.github.io/mini-games-website/](https://yourusername.github.io/mini-games-website/](https://yaobnhea-sudo.github.io/MiniPlay/)](https://yaobnhea-sudo.github.io/MiniPlay)
 
 ## 📝 Development
 
