@@ -1,17 +1,36 @@
-// 2048 Game Implementation
+// Enhanced 2048 Game Implementation with Difficulty Levels
 class Game2048 {
     constructor() {
+        // Safe element selection with null checks
         this.canvas = document.getElementById('gameCanvas');
-        this.ctx = this.canvas.getContext('2d');
+        this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
         this.scoreElement = document.getElementById('score');
         this.highScoreElement = document.getElementById('high-score');
+        this.movesElement = document.getElementById('moves');
         
-        this.size = 4;
+        if (!this.canvas || !this.ctx) {
+            console.error('Canvas element not found');
+            return;
+        }
+
+        // Difficulty settings
+        this.difficulties = {
+            easy: { size: 3, goal: 512 },
+            medium: { size: 4, goal: 2048 },
+            hard: { size: 5, goal: 4096 }
+        };
+        
+        this.currentDifficulty = 'medium';
+        this.size = this.difficulties[this.currentDifficulty].size;
         this.tileSize = 90;
         this.tileMargin = 10;
         this.boardSize = this.size * this.tileSize + (this.size + 1) * this.tileMargin;
         
-        // Colors for different tile values
+        // Update canvas size based on difficulty
+        this.canvas.width = this.boardSize;
+        this.canvas.height = this.boardSize;
+        
+        // Enhanced colors for different tile values
         this.colors = {
             0: '#cdc1b4',
             2: '#eee4da',
@@ -31,25 +50,81 @@ class Game2048 {
         
         this.textColors = {
             2: '#776e65',
-            4: '#776e65'
+            4: '#776e65',
+            8: '#f9f6f2',
+            16: '#f9f6f2',
+            32: '#f9f6f2',
+            64: '#f9f6f2',
+            128: '#f9f6f2',
+            256: '#f9f6f2',
+            512: '#f9f6f2',
+            1024: '#f9f6f2',
+            2048: '#f9f6f2',
+            4096: '#f9f6f2',
+            8192: '#f9f6f2'
         };
+
+        // Animation properties
+        this.animating = false;
+        this.animationQueue = [];
+        this.gameOver = false;
+        this.won = false;
         
+        this.initializeGame();
+    }
+    
+    setDifficulty(difficulty) {
+        this.currentDifficulty = difficulty;
+        this.size = this.difficulties[difficulty].size;
+        this.boardSize = this.size * this.tileSize + (this.size + 1) * this.tileMargin;
+        
+        // Update canvas size
+        this.canvas.width = this.boardSize;
+        this.canvas.height = this.boardSize;
+        
+        this.reset();
+        this.updateDifficultyDisplay();
+    }
+    
+    updateDifficultyDisplay() {
+        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+        difficultyButtons.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.difficulty === this.currentDifficulty) {
+                btn.classList.add('active');
+            }
+        });
+    }
+
+    initializeGame() {
         this.reset();
         this.bindEvents();
         this.loadHighScore();
         this.draw();
     }
+
+    safeUpdateDisplay() {
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('high-score');
+        const movesElement = document.getElementById('moves');
+        
+        if (scoreElement) scoreElement.textContent = String(this.score || 0);
+        if (highScoreElement) highScoreElement.textContent = String(this.highScore || 0);
+        if (movesElement) movesElement.textContent = String(this.moves || 0);
+    }
     
     reset() {
         this.board = Array(this.size).fill().map(() => Array(this.size).fill(0));
         this.score = 0;
+        this.moves = 0;
         this.previousStates = [];
         this.gameOver = false;
         this.won = false;
         
         this.addRandomTile();
         this.addRandomTile();
-        this.updateDisplay();
+        this.safeUpdateDisplay();
+        this.hideGameOverModal();
         this.draw();
     }
     
@@ -72,10 +147,10 @@ class Game2048 {
     saveState() {
         this.previousStates.push({
             board: this.board.map(row => [...row]),
-            score: this.score
+            score: this.score,
+            moves: this.moves
         });
         
-        // Limit undo history to 10 moves
         if (this.previousStates.length > 10) {
             this.previousStates.shift();
         }
@@ -86,15 +161,44 @@ class Game2048 {
             const previousState = this.previousStates.pop();
             this.board = previousState.board;
             this.score = previousState.score;
+            this.moves = previousState.moves;
             this.gameOver = false;
             this.won = false;
-            this.updateDisplay();
+            this.safeUpdateDisplay();
             this.draw();
         }
     }
+
+    showGameOverModal() {
+        const modal = document.createElement('div');
+        modal.id = 'gameOverModal';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+        modal.innerHTML = `
+            <div class="bg-gradient-to-br from-purple-800 to-pink-800 p-8 rounded-2xl text-center max-w-md mx-4 animate-fadeInUp">
+                <div class="text-6xl mb-4">${this.won ? '🎉' : '😔'}</div>
+                <h2 class="text-3xl font-bold text-white mb-4">${this.won ? 'You Won!' : 'Game Over!'}</h2>
+                <div class="text-white text-xl mb-2">Final Score: <span class="text-yellow-300 font-bold">${this.score}</span></div>
+                <div class="text-white text-lg mb-6">Best Score: <span class="text-green-300 font-bold">${this.highScore}</span></div>
+                <div class="flex gap-4 justify-center">
+                    <button onclick="game2048.reset()" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-300">
+                        New Game
+                    </button>
+                    <button onclick="document.getElementById('gameOverModal').remove()" class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-3 rounded-lg font-bold hover:from-gray-600 hover:to-gray-700 transform hover:scale-105 transition-all duration-300">
+                        Close
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    hideGameOverModal() {
+        const modal = document.getElementById('gameOverModal');
+        if (modal) modal.remove();
+    }
     
     move(direction) {
-        if (this.gameOver) return false;
+        if (this.gameOver || this.animating) return false;
         
         this.saveState();
         
@@ -112,11 +216,12 @@ class Game2048 {
                     this.score += filtered[i] * 2;
                     i += 2;
                     moved = true;
+                    
+                    if (filtered[i - 2] * 2 === this.difficulties[this.currentDifficulty].goal && !this.won) {
+                        this.won = true;
+                    }
                 } else {
                     merged.push(filtered[i]);
-                    if (i > 0 && filtered[i] !== filtered[i - 1]) {
-                        moved = true;
-                    }
                     i++;
                 }
             }
@@ -128,52 +233,11 @@ class Game2048 {
             return merged;
         };
         
-        const rotateLeft = (matrix) => {
-            const rotated = [];
-            for (let c = 0; c < this.size; c++) {
-                rotated[c] = [];
-                for (let r = this.size - 1; r >= 0; r--) {
-                    rotated[c][this.size - 1 - r] = matrix[r][c];
-                }
-            }
-            return rotated;
-        };
-        
-        const rotateRight = (matrix) => {
-            const rotated = [];
-            for (let c = this.size - 1; c >= 0; c--) {
-                rotated[this.size - 1 - c] = [];
-                for (let r = 0; r < this.size; r++) {
-                    rotated[this.size - 1 - c][r] = matrix[r][c];
-                }
-            }
-            return rotated;
-        };
-        
-        const transpose = (matrix) => {
-            const transposed = [];
-            for (let r = 0; r < this.size; r++) {
-                transposed[r] = [];
-                for (let c = 0; c < this.size; c++) {
-                    transposed[r][c] = matrix[c][r];
-                }
-            }
-            return transposed;
-        };
-        
-        const reverseRows = (matrix) => {
-            return matrix.map(row => [...row].reverse());
-        };
-        
         // Apply move based on direction
         switch (direction) {
             case 'left':
                 for (let r = 0; r < this.size; r++) {
-                    const newRow = slide(newBoard[r]);
-                    if (JSON.stringify(newRow) !== JSON.stringify(newBoard[r])) {
-                        moved = true;
-                    }
-                    newBoard[r] = newRow;
+                    newBoard[r] = slide(newBoard[r]);
                 }
                 break;
                 
@@ -181,86 +245,65 @@ class Game2048 {
                 for (let r = 0; r < this.size; r++) {
                     const reversed = [...newBoard[r]].reverse();
                     const newRow = slide(reversed).reverse();
-                    if (JSON.stringify(newRow) !== JSON.stringify(newBoard[r])) {
-                        moved = true;
-                    }
                     newBoard[r] = newRow;
                 }
                 break;
                 
             case 'up':
-                const transposedUp = transpose(newBoard);
                 for (let c = 0; c < this.size; c++) {
-                    const newCol = slide(transposedUp[c]);
-                    if (JSON.stringify(newCol) !== JSON.stringify(transposedUp[c])) {
-                        moved = true;
+                    const column = [];
+                    for (let r = 0; r < this.size; r++) {
+                        column.push(newBoard[r][c]);
                     }
-                    transposedUp[c] = newCol;
-                }
-                const finalUp = transpose(transposedUp);
-                for (let r = 0; r < this.size; r++) {
-                    newBoard[r] = finalUp[r];
+                    const newColumn = slide(column);
+                    for (let r = 0; r < this.size; r++) {
+                        newBoard[r][c] = newColumn[r];
+                    }
                 }
                 break;
                 
             case 'down':
-                const transposedDown = transpose(newBoard);
                 for (let c = 0; c < this.size; c++) {
-                    const reversed = [...transposedDown[c]].reverse();
-                    const newCol = slide(reversed).reverse();
-                    if (JSON.stringify(newCol) !== JSON.stringify(transposedDown[c])) {
-                        moved = true;
+                    const column = [];
+                    for (let r = 0; r < this.size; r++) {
+                        column.push(newBoard[r][c]);
                     }
-                    transposedDown[c] = newCol;
-                }
-                const finalDown = transpose(transposedDown);
-                for (let r = 0; r < this.size; r++) {
-                    newBoard[r] = finalDown[r];
+                    const reversed = [...column].reverse();
+                    const newColumn = slide(reversed).reverse();
+                    for (let r = 0; r < this.size; r++) {
+                        newBoard[r][c] = newColumn[r];
+                    }
                 }
                 break;
+        }
+        
+        // Check if the board actually changed
+        if (JSON.stringify(newBoard) !== JSON.stringify(this.board)) {
+            moved = true;
+            this.moves++;
         }
         
         if (moved) {
             this.board = newBoard;
             this.addRandomTile();
-            this.updateDisplay();
+            this.safeUpdateDisplay();
+            this.saveHighScore();
             this.draw();
             
-            if (this.checkWin()) {
-                this.won = true;
-                alert('Congratulations! You reached 2048!');
-            }
-            
-            if (this.checkGameOver()) {
+            if (this.isGameOver()) {
                 this.gameOver = true;
-                this.handleGameOver();
+                setTimeout(() => this.showGameOverModal(), 300);
             }
-        } else {
-            // Revert the saved state if no move was made
-            this.previousStates.pop();
         }
         
         return moved;
     }
     
-    checkWin() {
-        for (let r = 0; r < this.size; r++) {
-            for (let c = 0; c < this.size; c++) {
-                if (this.board[r][c] === 2048) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-    
-    checkGameOver() {
+    isGameOver() {
         // Check for empty cells
         for (let r = 0; r < this.size; r++) {
             for (let c = 0; c < this.size; c++) {
-                if (this.board[r][c] === 0) {
-                    return false;
-                }
+                if (this.board[r][c] === 0) return false;
             }
         }
         
@@ -268,50 +311,107 @@ class Game2048 {
         for (let r = 0; r < this.size; r++) {
             for (let c = 0; c < this.size; c++) {
                 const current = this.board[r][c];
-                if (
-                    (r < this.size - 1 && this.board[r + 1][c] === current) ||
-                    (c < this.size - 1 && this.board[r][c + 1] === current)
-                ) {
-                    return false;
-                }
+                if (c < this.size - 1 && current === this.board[r][c + 1]) return false;
+                if (r < this.size - 1 && current === this.board[r + 1][c]) return false;
             }
         }
         
         return true;
     }
     
-    handleGameOver() {
-        // Check for new high score
+    saveHighScore() {
+        this.highScore = Math.max(this.highScore || 0, this.score);
         if (window.MiniGames && window.MiniGames.setHighScore) {
-            const isNewHighScore = window.MiniGames.setHighScore('2048', this.score);
-            if (isNewHighScore) {
-                window.MiniGames.showNotification('New High Score!', 'success');
-            }
+            window.MiniGames.setHighScore('2048', this.highScore);
         } else {
-            const currentHighScore = parseInt(localStorage.getItem('2048HighScore') || '0');
-            if (this.score > currentHighScore) {
-                localStorage.setItem('2048HighScore', this.score.toString());
-                alert('New High Score: ' + this.score);
-            }
+            localStorage.setItem('2048HighScore', this.highScore.toString());
         }
-        
-        alert(`Game Over! Your score: ${this.score}`);
-    }
-    
-    updateDisplay() {
-        this.scoreElement.textContent = this.score;
     }
     
     loadHighScore() {
         if (window.MiniGames && window.MiniGames.getHighScore) {
-            this.highScoreElement.textContent = window.MiniGames.getHighScore('2048');
+            this.highScore = window.MiniGames.getHighScore('2048') || 0;
         } else {
-            this.highScoreElement.textContent = localStorage.getItem('2048HighScore') || '0';
+            this.highScore = parseInt(localStorage.getItem('2048HighScore') || '0');
         }
+        this.safeUpdateDisplay();
+    }
+    
+    bindEvents() {
+        document.addEventListener('keydown', (e) => {
+            switch (e.code) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    this.move('left');
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    this.move('right');
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    this.move('up');
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    this.move('down');
+                    break;
+            }
+        });
+        
+        // Touch controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        this.canvas.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+        
+        this.canvas.addEventListener('touchend', (e) => {
+            if (!touchStartX || !touchStartY) return;
+            
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+            
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX > 50) this.move('left');
+                else if (diffX < -50) this.move('right');
+            } else {
+                if (diffY > 50) this.move('up');
+                else if (diffY < -50) this.move('down');
+            }
+            
+            touchStartX = 0;
+            touchStartY = 0;
+        });
+        
+        // Mobile button controls
+        document.querySelectorAll('.mobile-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const direction = btn.getAttribute('data-direction');
+                this.move(direction);
+            });
+        });
+        
+        // Button event listeners
+        const newGameBtn = document.getElementById('newGameBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        
+        if (newGameBtn) newGameBtn.addEventListener('click', () => this.reset());
+        if (undoBtn) undoBtn.addEventListener('click', () => this.undo());
     }
     
     draw() {
+        if (!this.ctx) return;
+        
         // Clear canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        // Draw board background
         this.ctx.fillStyle = '#bbada0';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
@@ -329,55 +429,18 @@ class Game2048 {
                 // Draw tile value
                 if (value !== 0) {
                     this.ctx.fillStyle = this.textColors[value] || '#f9f6f2';
-                    this.ctx.font = value > 512 ? '24px Arial' : '32px Arial';
+                    this.ctx.font = `bold ${value > 1000 ? '24px' : value > 100 ? '32px' : '40px'} Arial`;
                     this.ctx.textAlign = 'center';
                     this.ctx.textBaseline = 'middle';
-                    this.ctx.fillText(
-                        value.toString(),
-                        x + this.tileSize / 2,
-                        y + this.tileSize / 2
-                    );
+                    this.ctx.fillText(value.toString(), x + this.tileSize / 2, y + this.tileSize / 2);
                 }
             }
         }
     }
-    
-    bindEvents() {
-        document.addEventListener('keydown', (e) => {
-            if (this.gameOver) return;
-            
-            let moved = false;
-            
-            switch(e.key) {
-                case 'ArrowUp':
-                    e.preventDefault();
-                    moved = this.move('up');
-                    break;
-                case 'ArrowDown':
-                    e.preventDefault();
-                    moved = this.move('down');
-                    break;
-                case 'ArrowLeft':
-                    e.preventDefault();
-                    moved = this.move('left');
-                    break;
-                case 'ArrowRight':
-                    e.preventDefault();
-                    moved = this.move('right');
-                    break;
-            }
-            
-            if (moved) {
-                this.draw();
-            }
-        });
-        
-        document.getElementById('newGameBtn').addEventListener('click', () => this.reset());
-        document.getElementById('undoBtn').addEventListener('click', () => this.undo());
-    }
 }
 
-// Initialize game when page loads
+// Initialize game when DOM is loaded
+let game2048;
 document.addEventListener('DOMContentLoaded', () => {
-    new Game2048();
+    game2048 = new Game2048();
 });

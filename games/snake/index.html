@@ -6,36 +6,217 @@
     <title>Snake Game - Mini Games</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../../css/main.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .score-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .score-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        #gameCanvas {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .game-btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-btn:active {
+            transform: translateY(0);
+        }
+        
+        .game-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            transform: translate(-50%, -50%);
+        }
+        
+        .game-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .glow {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        @media (max-width: 640px) {
+            .game-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            #gameCanvas {
+                width: 100%;
+                max-width: 320px;
+                height: 320px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <header class="bg-white shadow-sm">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-gray-900">Snake Game</h1>
-            <a href="../../" class="text-blue-500 hover:text-blue-700">← Back to Games</a>
+<body class="min-h-screen">
+    <header class="bg-white/10 backdrop-blur-md border-b border-white/20">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-white">🐍 Snake Game</h1>
+            <a href="/" class="text-white hover:text-blue-200 transition-colors duration-300 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Back to Games
+            </a>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8">
-        <div class="game-container">
-            <div class="text-center mb-4">
-                <div class="score-display">
-                    Score: <span id="score">0</span> | High Score: <span id="high-score">0</span>
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <div class="game-container p-8">
+            <!-- Score Display -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="score-card p-4 text-center">
+                    <div class="text-2xl font-bold text-white">Score</div>
+                    <div id="score" class="text-4xl font-bold text-green-300">0</div>
+                </div>
+                <div class="score-card p-4 text-center">
+                    <div class="text-2xl font-bold text-white">High Score</div>
+                    <div id="high-score" class="text-4xl font-bold text-yellow-300">0</div>
+                </div>
+                <div class="score-card p-4 text-center">
+                    <div class="text-2xl font-bold text-white">Speed</div>
+                    <div id="speed" class="text-4xl font-bold text-purple-300">1x</div>
                 </div>
             </div>
 
-            <canvas id="gameCanvas" width="400" height="400"></canvas>
-
-            <div class="game-instructions">
-                <h3>How to Play</h3>
-                <p>Use arrow keys or WASD to control the snake</p>
-                <p>Eat the red food to grow and increase your score</p>
-                <p>Don't hit the walls or yourself!</p>
+            <!-- Difficulty Selection -->
+            <div class="difficulty-selection mb-6" style="display: flex; justify-content: center; gap: 10px;">
+                <button class="difficulty-btn" data-difficulty="easy" onclick="snakeGame.setDifficulty('easy')" style="padding: 8px 16px; border: none; border-radius: 20px; background: linear-gradient(45deg, #4CAF50, #45a049); color: white; cursor: pointer; transition: all 0.3s ease; opacity: 0.7;">Easy</button>
+                <button class="difficulty-btn active" data-difficulty="medium" onclick="snakeGame.setDifficulty('medium')" style="padding: 8px 16px; border: none; border-radius: 20px; background: linear-gradient(45deg, #FF9800, #F57C00); color: white; cursor: pointer; transition: all 0.3s ease; opacity: 1; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">Medium</button>
+                <button class="difficulty-btn" data-difficulty="hard" onclick="snakeGame.setDifficulty('hard')" style="padding: 8px 16px; border: none; border-radius: 20px; background: linear-gradient(45deg, #F44336, #D32F2F); color: white; cursor: pointer; transition: all 0.3s ease; opacity: 0.7;">Hard</button>
             </div>
 
-            <div class="game-controls">
-                <button id="startBtn" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">Start Game</button>
-                <button id="pauseBtn" class="bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600 ml-4">Pause</button>
-                <button id="resetBtn" class="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600 ml-4">Reset</button>
+            <!-- Game Canvas -->
+            <div class="flex justify-center mb-6">
+                <canvas id="gameCanvas" width="400" height="400" class="bg-gray-900"></canvas>
+            </div>
+
+            <!-- Game Controls -->
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
+                <button id="startBtn" class="game-btn bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+                        </svg>
+                        Start Game
+                    </span>
+                </button>
+                <button id="pauseBtn" class="game-btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-full">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        Pause
+                    </span>
+                </button>
+                <button id="resetBtn" class="game-btn bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-8 rounded-full">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                        </svg>
+                        Reset
+                    </span>
+                </button>
+            </div>
+
+            <!-- Mobile Controls -->
+            <div class="md:hidden flex flex-col items-center gap-2">
+                <div class="text-white text-sm mb-2">Mobile Controls:</div>
+                <div class="grid grid-cols-3 gap-2 w-48">
+                    <div></div>
+                    <button id="upBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">↑</button>
+                    <div></div>
+                    <button id="leftBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">←</button>
+                    <button id="downBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">↓</button>
+                    <button id="rightBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">→</button>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="text-center text-white/80">
+                <h3 class="text-xl font-bold mb-4 text-white">How to Play</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="bg-white/10 p-4 rounded-lg">
+                        <div class="text-2xl mb-2">🎮</div>
+                        <div>Use arrow keys or WASD</div>
+                    </div>
+                    <div class="bg-white/10 p-4 rounded-lg">
+                        <div class="text-2xl mb-2">🍎</div>
+                        <div>Eat the red food to grow</div>
+                    </div>
+                    <div class="bg-white/10 p-4 rounded-lg">
+                        <div class="text-2xl mb-2">⚠️</div>
+                        <div>Don't hit walls or yourself</div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>

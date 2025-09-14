@@ -1,97 +1,346 @@
 /* Custom styles for the mini-games website */
 
-/* Game card hover effects */
+/* Enhanced animations and effects */
+:root {
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+    --accent-color: #ff6b6b;
+    --success-color: #4ecdc4;
+    --warning-color: #feca57;
+    --text-color: #2d3436;
+    --light-text: #ffffff;
+    --shadow-light: 0 4px 15px rgba(0,0,0,0.1);
+    --shadow-medium: 0 8px 25px rgba(0,0,0,0.15);
+    --shadow-heavy: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+/* Enhanced game card animations */
+.game-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.game-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.game-card:hover::before {
+    left: 100%;
+}
+
+.game-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--shadow-heavy);
+}
+
+.game-card:active {
+    transform: translateY(-4px) scale(0.98);
+}
+
+/* Floating animation for hero elements */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.floating {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Pulse animation for interactive elements */
+@keyframes pulse-glow {
+    0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4);
+    }
+    50% { 
+        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+    }
+}
+
+.pulse-glow {
+    animation: pulse-glow 2s infinite;
+}
+
+/* Slide in animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Staggered animations */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+/* Enhanced game card hover effects */
 .game-card {
     transition: transform 0.2s ease-in-out;
 }
 
-.game-card:hover {
-    transform: translateY(-4px);
+/* Additional styles for enhanced animations */
+.btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
 }
 
-/* Responsive adjustments */
-@media (max-width: 640px) {
-    .game-card {
-        margin-bottom: 1rem;
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+}
+
+/* Ripple effect styles */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: ripple-animation 0.6s linear;
+    background-color: rgba(255, 255, 255, 0.4);
+    pointer-events: none;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
     }
 }
 
-/* Loading animation */
-.loading {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid rgba(255,255,255,.3);
+/* Particle effects */
+.particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
     border-radius: 50%;
-    border-top-color: #fff;
-    animation: spin 1s ease-in-out infinite;
+    pointer-events: none;
+    animation: particle-float 1s ease-out forwards;
+}
+
+@keyframes particle-float {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-50px) scale(0);
+    }
+}
+
+/* Loading spinner */
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-/* Canvas styling for games */
-canvas {
-    border: 2px solid #374151;
-    border-radius: 8px;
-    display: block;
-    margin: 0 auto;
-    background: #1f2937;
+/* Enhanced responsive design */
+@media (max-width: 768px) {
+    .game-card {
+        margin-bottom: 1rem;
+    }
+    
+    .game-card:hover {
+        transform: translateY(-4px) scale(1.01);
+    }
 }
 
-/* Game container */
+/* Additional game-specific enhancements */
 .game-container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 2rem;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Score display */
-.score-display {
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    color: #374151;
+/* Smooth transitions for all interactive elements */
+* {
+    transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Game controls */
-.game-controls {
-    text-align: center;
-    margin-top: 1rem;
-}
-
-.game-controls button {
-    margin: 0 0.5rem;
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
+/* Enhanced button styles */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.game-controls button:hover {
-    opacity: 0.9;
-}
-
-/* Instructions */
-.game-instructions {
-    background: #f3f4f6;
-    padding: 1rem;
+    color: white;
+    padding: 12px 24px;
     border-radius: 8px;
-    margin-bottom: 1rem;
-    text-align: center;
+    font-weight: 600;
+    box-shadow: var(--shadow-light);
+    transition: all 0.3s ease;
 }
 
-.game-instructions h3 {
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Score animations */
+.score-popup {
+    position: absolute;
+    color: var(--success-color);
     font-weight: bold;
-    margin-bottom: 0.5rem;
-    color: #374151;
+    font-size: 1.2em;
+    pointer-events: none;
+    animation: score-popup 1s ease-out forwards;
 }
 
-.game-instructions p {
-    color: #6b7280;
-    margin: 0.25rem 0;
+@keyframes score-popup {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-30px) scale(1.2);
+    }
+}
+
+/* Enhanced modal animations */
+.modal-backdrop {
+    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    animation: modal-slide-in 0.3s ease-out;
+}
+
+@keyframes modal-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Game canvas enhancements */
+canvas {
+    border-radius: 12px;
+    box-shadow: var(--shadow-medium);
+    background: white;
+}
+
+/* Mobile touch improvements */
+@media (hover: none) and (pointer: coarse) {
+    .game-card:hover {
+        transform: none;
+    }
+    
+    .btn:hover {
+        transform: none;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text-color: #ffffff;
+        --light-text: #2d3436;
+    }
+    
+    body {
+        background: #1a1a1a;
+        color: var(--text-color);
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .game-card {
+        border: 2px solid var(--text-color);
+    }
+    
+    .btn {
+        border-width: 3px;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }

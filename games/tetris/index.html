@@ -6,44 +6,162 @@
     <title>Tetris Game - Mini Games</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../../css/main.css">
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .animate-fadeInUp { animation: fadeInUp 0.6s ease-out; }
+        .animate-slideInLeft { animation: slideInLeft 0.6s ease-out; }
+        .animate-pulse { animation: pulse 2s infinite; }
+        .game-canvas {
+            border: 2px solid #374151;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .score-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .mobile-controls {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 8px;
+                margin-top: 1rem;
+            }
+            .mobile-btn {
+                padding: 12px;
+                font-size: 18px;
+                border-radius: 8px;
+                background: #3b82f6;
+                color: white;
+                border: none;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .mobile-btn:hover {
+                background: #2563eb;
+                transform: scale(1.05);
+            }
+            .mobile-btn:active {
+                transform: scale(0.95);
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <header class="bg-white shadow-sm">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-gray-900">Tetris</h1>
-            <a href="../../" class="text-blue-500 hover:text-blue-700">← Back to Games</a>
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen text-white">
+    <header class="bg-black bg-opacity-20 backdrop-blur-md border-b border-white border-opacity-10">
+        <div class="max-w-6xl mx-auto px-4 py-6 flex justify-between items-center">
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent animate-pulse">Tetris</h1>
+            <a href="/" class="text-white hover:text-purple-300 transition-colors duration-300 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Games
+            </a>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-4 py-8">
-        <div class="game-container">
-            <div class="text-center mb-4">
-                <div class="score-display">
-                    Score: <span id="score">0</span> | Lines: <span id="lines">0</span> | High Score: <span id="high-score">0</span>
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Game Area -->
+            <div class="lg:col-span-2">
+                <div class="score-card mb-6 animate-fadeInUp">
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div class="text-2xl font-bold" id="score">0</div>
+                            <div class="text-sm opacity-75">Score</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold" id="lines">0</div>
+                            <div class="text-sm opacity-75">Lines</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold" id="level">1</div>
+                            <div class="text-sm opacity-75">Level</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Difficulty Selection -->
+                <div class="difficulty-selection mb-6" style="display: flex; justify-content: center; gap: 10px;">
+                    <button class="difficulty-btn" data-difficulty="easy" onclick="game.setDifficulty('easy')" style="padding: 8px 16px; border: none; border-radius: 20px; background: linear-gradient(45deg, #4CAF50, #45a049); color: white; cursor: pointer; transition: all 0.3s ease; opacity: 0.7;">Easy</button>
+                    <button class="difficulty-btn active" data-difficulty="medium" onclick="game.setDifficulty('medium')" style="padding: 8px 16px; border: none; border-radius: 20px; background: linear-gradient(45deg, #FF9800, #F57C00); color: white; cursor: pointer; transition: all 0.3s ease; opacity: 1; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">Medium</button>
+                    <button class="difficulty-btn" data-difficulty="hard" onclick="game.setDifficulty('hard')" style="padding: 8px 16px; border: none; border-radius: 20px; background: linear-gradient(45deg, #F44336, #D32F2F); color: white; cursor: pointer; transition: all 0.3s ease; opacity: 0.7;">Hard</button>
+                </div>
+
+                <div class="flex justify-center">
+                    <canvas id="gameCanvas" width="300" height="600" class="game-canvas bg-black bg-opacity-50"></canvas>
+                </div>
+
+                <!-- Mobile Controls -->
+                <div class="mobile-controls">
+                    <button class="mobile-btn" data-action="left">←</button>
+                    <button class="mobile-btn" data-action="rotate">↻</button>
+                    <button class="mobile-btn" data-action="right">→</button>
+                    <button class="mobile-btn" data-action="soft-drop">↓</button>
+                    <button class="mobile-btn" data-action="hard-drop" style="grid-column: 2 / 4;">Drop</button>
                 </div>
             </div>
 
-            <div class="flex justify-center">
-                <canvas id="gameCanvas" width="300" height="600"></canvas>
-                <div class="ml-8">
-                    <h3 class="font-bold mb-2">Next:</h3>
-                    <canvas id="nextPieceCanvas" width="120" height="120"></canvas>
+            <!-- Sidebar -->
+            <div class="animate-slideInLeft">
+                <!-- Next Piece -->
+                <div class="bg-black bg-opacity-30 backdrop-blur-sm rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-center">Next Piece</h3>
+                    <canvas id="nextPieceCanvas" width="120" height="120" class="mx-auto bg-black bg-opacity-30 rounded-lg"></canvas>
                 </div>
-            </div>
 
-            <div class="game-instructions">
-                <h3>How to Play</h3>
-                <p>← → Arrow keys: Move piece left/right</p>
-                <p>↓ Arrow key: Soft drop</p>
-                <p>↑ Arrow key: Rotate piece</p>
-                <p>Space: Hard drop</p>
-                <p>Clear lines to score points!</p>
-            </div>
+                <!-- Controls -->
+                <div class="bg-black bg-opacity-30 backdrop-blur-sm rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4">Controls</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>← →</span>
+                            <span class="text-gray-400">Move</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>↑</span>
+                            <span class="text-gray-400">Rotate</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>↓</span>
+                            <span class="text-gray-400">Soft Drop</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Space</span>
+                            <span class="text-gray-400">Hard Drop</span>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="game-controls">
-                <button id="startBtn" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">Start Game</button>
-                <button id="pauseBtn" class="bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600 ml-4">Pause</button>
-                <button id="resetBtn" class="bg-red-500 text-white px-6 py-2 rounded hover:bg-red-600 ml-4">Reset</button>
+                <!-- Game Controls -->
+                <div class="space-y-3">
+                    <button id="startBtn" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-lg font-bold hover:from-green-600 hover:to-emerald-700 transition-all duration-300 transform hover:scale-105">
+                        Start Game
+                    </button>
+                    <button id="pauseBtn" class="w-full bg-gradient-to-r from-yellow-500 to-orange-600 text-white py-3 px-6 rounded-lg font-bold hover:from-yellow-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105">
+                        Pause
+                    </button>
+                    <button id="resetBtn" class="w-full bg-gradient-to-r from-red-500 to-rose-600 text-white py-3 px-6 rounded-lg font-bold hover:from-red-600 hover:to-rose-700 transition-all duration-300 transform hover:scale-105">
+                        Reset
+                    </button>
+                </div>
             </div>
         </div>
     </main>

@@ -6,35 +6,180 @@
     <title>2048 Game - Mini Games</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../../css/main.css">
+    <style>
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        @keyframes tileMerge {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes tileAppear {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .animate-slideInLeft {
+            animation: slideInLeft 0.6s ease-out;
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        .tile-merge {
+            animation: tileMerge 0.3s ease-out;
+        }
+        
+        .tile-appear {
+            animation: tileAppear 0.2s ease-out;
+        }
+        
+        .game-canvas {
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .score-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mobile-controls {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            
+            .mobile-btn {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px;
+                font-size: 14px;
+                font-weight: bold;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+                transition: all 0.3s ease;
+            }
+            
+            .mobile-btn:active {
+                transform: scale(0.95);
+                box-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <header class="bg-white shadow-sm">
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
+    <header class="bg-white bg-opacity-10 backdrop-blur-md border-b border-white border-opacity-20">
         <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-gray-900">2048</h1>
-            <a href="../../" class="text-blue-500 hover:text-blue-700">← Back to Games</a>
+            <h1 class="text-3xl font-bold text-white animate-fadeInUp">2048</h1>
+            <a href="/" class="text-white hover:text-purple-300 transition-colors duration-300 flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Games
+            </a>
         </div>
     </header>
 
     <main class="max-w-4xl mx-auto px-4 py-8">
-        <div class="game-container">
-            <div class="text-center mb-4">
-                <div class="score-display">
-                    Score: <span id="score">0</span> | High Score: <span id="high-score">0</span>
+        <div class="game-container animate-fadeInUp">
+            <!-- Score Display -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="score-card p-4 text-center">
+                    <div class="text-white text-sm opacity-75">Score</div>
+                    <div class="text-white text-2xl font-bold" id="score">0</div>
+                </div>
+                <div class="score-card p-4 text-center">
+                    <div class="text-white text-sm opacity-75">Best</div>
+                    <div class="text-white text-2xl font-bold" id="high-score">0</div>
+                </div>
+                <div class="score-card p-4 text-center">
+                    <div class="text-white text-sm opacity-75">Moves</div>
+                    <div class="text-white text-2xl font-bold" id="moves">0</div>
                 </div>
             </div>
 
-            <canvas id="gameCanvas" width="400" height="400"></canvas>
-
-            <div class="game-instructions">
-                <h3>How to Play</h3>
-                <p>Use arrow keys to move tiles</p>
-                <p>When two tiles with the same number touch, they merge into one!</p>
-                <p>Try to reach the 2048 tile!</p>
+            <!-- Difficulty Selection -->
+            <div class="difficulty-selection mb-6" style="display: flex; justify-content: center; gap: 10px;">
+                <button class="difficulty-btn" data-difficulty="easy" onclick="game2048.setDifficulty('easy')" style="padding: 8px 16px; border: none; border-radius: 20px; background: linear-gradient(45deg, #4CAF50, #45a049); color: white; cursor: pointer; transition: all 0.3s ease; opacity: 0.7;">Easy (3x3)</button>
+                <button class="difficulty-btn active" data-difficulty="medium" onclick="game2048.setDifficulty('medium')" style="padding: 8px 16px; border: none; border-radius: 20px; background: linear-gradient(45deg, #FF9800, #F57C00); color: white; cursor: pointer; transition: all 0.3s ease; opacity: 1; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">Medium (4x4)</button>
+                <button class="difficulty-btn" data-difficulty="hard" onclick="game2048.setDifficulty('hard')" style="padding: 8px 16px; border: none; border-radius: 20px; background: linear-gradient(45deg, #F44336, #D32F2F); color: white; cursor: pointer; transition: all 0.3s ease; opacity: 0.7;">Hard (5x5)</button>
             </div>
 
-            <div class="game-controls">
-                <button id="newGameBtn" class="bg-purple-500 text-white px-6 py-2 rounded hover:bg-purple-600">New Game</button>
-                <button id="undoBtn" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 ml-4">Undo</button>
+            <!-- Game Board -->
+            <div class="flex justify-center mb-6">
+                <canvas id="gameCanvas" width="400" height="400" class="game-canvas bg-gray-800"></canvas>
+            </div>
+
+            <!-- Game Controls -->
+            <div class="flex justify-center gap-4 mb-6">
+                <button id="newGameBtn" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-lg font-bold hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                    New Game
+                </button>
+                <button id="undoBtn" class="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-8 py-3 rounded-lg font-bold hover:from-gray-600 hover:to-gray-700 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                    Undo
+                </button>
+            </div>
+
+            <!-- Mobile Controls -->
+            <div class="mobile-controls mb-6">
+                <button class="mobile-btn" data-direction="up">↑</button>
+                <div></div>
+                <button class="mobile-btn" data-direction="left">←</button>
+                <button class="mobile-btn" data-direction="down">↓</button>
+                <button class="mobile-btn" data-direction="right">→</button>
+            </div>
+
+            <!-- Game Instructions -->
+            <div class="bg-white bg-opacity-10 backdrop-blur-md rounded-lg p-6 text-center animate-slideInLeft">
+                <h3 class="text-xl font-bold text-white mb-4">How to Play</h3>
+                <div class="text-white space-y-2 opacity-90">
+                    <p>Use arrow keys or swipe to move tiles</p>
+                    <p>When two tiles with the same number touch, they merge into one!</p>
+                    <p class="text-purple-300 font-bold">Easy: Reach 512! Medium: Reach 2048! Hard: Reach 4096! 🎯</p>
+                </div>
             </div>
         </div>
     </main>
